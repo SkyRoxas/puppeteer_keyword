@@ -1,34 +1,29 @@
-const cheerio = require('cheerio')
-const requestPromise = require('request-promise-any')
-
+const HCCrawler = require('headless-chrome-crawler')
 
 const targets = [
     {
         name: 'PChome 購物中心 熱門關鍵字',
         url: 'https://mall.pchome.com.tw/',
-        query: '#site_nav1 .body ul li'
+        query: '#site_nav1 .body ul li a'
     },
     {
         name: 'Yahoo 購物中心 熱門關鍵字',
-        url: 'https://tw.buy.yahoo.com/generic/ajax/adModule?moduleId=d_hotsearch',
-        query: ''
+        url: 'https://tw.buy.yahoo.com/',
+        query: '.hotSearch a'
     }
 ]
 
-const getKeyWordArr = ({url, query}) => {
-    return requestPromise(url).then(body => {
-        if(!body) throw new Error(`can not find ${name} data`)
-        const $ = cheerio.load(body)
-        const keyWordListQuery = $(query)
-        const result = Object.values(keyWordListQuery)
-                            .map((el, idx) => keyWordListQuery.eq(idx).find('a')
-                                ? keyWordListQuery.eq(idx).find('a').text() 
-                                : keyWordListQuery.eq(idx).text())
-                            .filter(el => el)
-        return result
-    })
+const getKeyWordA = async ({url, query}) => {
+    const crawler = await HCCrawler.launch({
+        evaluatePage: () => Object.values($('.hotSearch a')).map((el, idx) => $('.hotSearch a').eq(idx).text()),
+        onSuccess: result => {  
+            console.log('result :', result.result);
+        },
+    });
+    // Queue a request
+    await crawler.queue(url)
+    await crawler.onIdle()
+    await crawler.close()
 }
 
-Promise.all([getKeyWordArr(targets[1])]).then(res => {
-    console.log('res :', res);
-})
+getKeyWordA(targets[1])
