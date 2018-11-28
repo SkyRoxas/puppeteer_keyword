@@ -9,7 +9,7 @@ const targets = [
   },
   {
       name: 'Yahoo 購物中心 熱門關鍵字',
-      url: 'https://tw.buy.yahoo.com/generic/ajax/adModule?moduleId=d_hotsearch',
+      url: 'https://tw.buy.yahoo.com',
       query: '.hotSearch a'
   }
 ]
