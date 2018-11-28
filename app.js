@@ -1,16 +1,20 @@
 const puppeteer = require("puppeteer")
-const cheerio = require('cheerio')
 
 const targets = [
   {
-      name: 'PChome 購物中心 熱門關鍵字',
+      name: 'PChome 購物中心',
       url: 'https://mall.pchome.com.tw/',
       query: '#site_nav1 .body ul li a'
   },
   {
-      name: 'Yahoo 購物中心 熱門關鍵字',
+      name: 'Yahoo 購物中心',
       url: 'https://tw.buy.yahoo.com',
       query: '.hotSearch a'
+  },
+  {
+    name: 'MOMO 百貨',
+    url: 'https://tw.buy.yahoo.com',
+    query: '.hotSearch a'
   }
 ]
 
@@ -23,12 +27,21 @@ const runBrowser = async ({url, query, name}) => {
   })
   await page.goto(url) 
   await page.waitForSelector(query)
-  const result = await page.evaluate((q) => {
-    return document.querySelectorAll(q).length
-  }, query)
+
+  const result = await page.evaluate((q, n) => {
+    return Object.values(document.querySelectorAll(q)).map((el, index) => ({index, name:n, value: el.innerText}))
+  }, query, name)
+
   await browser.close()
-  console.log('result :', result, name);
+  return result
 }
 
-runBrowser(targets[0])
-runBrowser(targets[1])
+const getCrawlerGetData = () => {
+  const allTargetPromises = targets.map(el => runBrowser(el))
+  return Promise.all(allTargetPromises)
+}
+
+getCrawlerGetData().then(res => {
+  const data = res.length ? res.reduce((acc,cur) => [...acc, ...cur], []) : []
+  console.log('data :', data)
+})
